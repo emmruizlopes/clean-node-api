@@ -1,0 +1,4 @@
+diff a/src/presentation/controllers/signup.ts b/src/presentation/controllers/signup.ts	(rejected hunks)
+@@ -2 +2 @@ export class SignUpController {
+-  handle(httpRequest: any): any {
++  handle (httpRequest: any): any {
