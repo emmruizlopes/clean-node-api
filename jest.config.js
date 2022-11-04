@@ -10,5 +10,6 @@ module.exports = {
     'ts-jest': {
       diagnostics: false
     }
-  }
+  },
+  preset: '@shelf/jest-mongodb'
 }
