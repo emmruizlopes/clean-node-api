@@ -1,8 +1,14 @@
-import { InvalidParamError } from './../../erros/invalid-param-error'
-import { badRequest } from './../../helpers/http-helper'
+import { badRequest, serverError } from './../../helpers/http-helper'
 import { LoginController } from './login'
-import { EmailValidator } from './../../protocols/email-validator'
-import { MissingParamError } from '../../erros'
+import { HttpRequest, EmailValidator } from './../../protocols'
+import { MissingParamError, InvalidParamError } from '../../erros'
+
+const httpFakeRequest = (): HttpRequest => ({
+  body: {
+    email: 'any_email@gmail.com',
+    password: 'any_password'
+  }
+})
 
 interface SutTypes {
   sut: LoginController
@@ -53,26 +59,23 @@ describe('Login Controller', () => {
   test('Should retrun 400 if an invalid email is provided', async () => {
     const { sut, emailValidatorStub } = makeSut()
     jest.spyOn(emailValidatorStub, 'isValid').mockReturnValueOnce(false)
-    const httpRequest = {
-      body: {
-        email: 'any_email@gmail.com',
-        password: 'any_password'
-      }
-    }
-    const httpResponse = await sut.handle(httpRequest)
+    const httpResponse = await sut.handle(httpFakeRequest())
     expect(httpResponse).toEqual(badRequest(new InvalidParamError('password')))
   })
 
-  test('Should call EmailValidator woth corret email', async () => {
+  test('Should call EmailValidator with corret email', async () => {
     const { sut, emailValidatorStub } = makeSut()
     const isValidSpy = jest.spyOn(emailValidatorStub, 'isValid')
-    const httpRequest = {
-      body: {
-        email: 'any_email@gmail.com',
-        password: 'any_password'
-      }
-    }
-    await sut.handle(httpRequest)
+    await sut.handle(httpFakeRequest())
     expect(isValidSpy).toHaveBeenCalledWith('any_email@gmail.com')
+  })
+
+  test('Should call EmailValidator throws', async () => {
+    const { sut, emailValidatorStub } = makeSut()
+    jest.spyOn(emailValidatorStub, 'isValid').mockImplementationOnce(() => {
+      throw new Error()
+    })
+    const httpResponse = await sut.handle(httpFakeRequest())
+    expect(httpResponse).toEqual(serverError(new Error()))
   })
 })
